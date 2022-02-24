@@ -185,7 +185,6 @@ size_t compress_zfp_precision(float* in, size_t samples, size_t coils, unsigned 
 #endif //GADGETRON_COMPRESSION_ZFP
 
 namespace po = boost::program_options;
-using boost::asio::ip::tcp;
 
 
 enum GadgetronMessageID {
@@ -272,13 +271,13 @@ public:
     /**
     Function must be implemented to read a specific message.
     */
-    virtual void read(tcp::socket* s) = 0;
+    virtual void read(boost::asio::ip::tcp::socket* s) = 0;
 
 };
 
 class GadgetronClientResponseReader : public GadgetronClientMessageReader
 {
-    void read(tcp::socket *stream) override {
+    void read(boost::asio::ip::tcp::socket *stream) override {
 
         uint64_t correlation_id = 0;
         uint64_t response_length = 0;
@@ -308,7 +307,7 @@ public:
 
   }
 
-  virtual void read(tcp::socket* stream)
+  virtual void read(boost::asio::ip::tcp::socket* stream)
   {
     size_t recv_count = 0;
 
@@ -353,7 +352,7 @@ public:
 
   }
 
-  virtual void read(tcp::socket* stream)
+  virtual void read(boost::asio::ip::tcp::socket* stream)
   {
     size_t recv_count = 0;
 
@@ -414,7 +413,7 @@ public:
     }
 
     template <typename T>
-    void read_data_attrib(tcp::socket* stream, const ISMRMRD::ImageHeader& h, ISMRMRD::Image<T>& im)
+    void read_data_attrib(boost::asio::ip::tcp::socket* stream, const ISMRMRD::ImageHeader& h, ISMRMRD::Image<T>& im)
     {
         im.setHead(h);
 
@@ -456,7 +455,7 @@ public:
         }
     }
 
-    virtual void read(tcp::socket* stream)
+    virtual void read(boost::asio::ip::tcp::socket* stream)
     {
         //Read the image headerfrom the socket
         ISMRMRD::ImageHeader h;
@@ -841,7 +840,7 @@ public:
     }
 
     template <typename T>
-    void read_data_attrib(tcp::socket* stream, const ISMRMRD::ImageHeader& h, ISMRMRD::Image<T>& im)
+    void read_data_attrib(boost::asio::ip::tcp::socket* stream, const ISMRMRD::ImageHeader& h, ISMRMRD::Image<T>& im)
     {
         im.setHead(h);
 
@@ -929,7 +928,7 @@ public:
         outfileData.close();
     }
 
-    virtual void read(tcp::socket* stream)
+    virtual void read(boost::asio::ip::tcp::socket* stream)
     {
         //Read the image headerfrom the socket
         ISMRMRD::ImageHeader h;
@@ -1006,7 +1005,7 @@ public:
 
     virtual ~GadgetronClientBlobMessageReader() {}
 
-    virtual void read(tcp::socket* socket)
+    virtual void read(boost::asio::ip::tcp::socket* socket)
     {
 
         // MUST READ 32-bits
@@ -1160,15 +1159,21 @@ public:
 
     void connect(std::string hostname, std::string port)
     {
-        tcp::resolver resolver(io_service);
+        boost::asio::ip::tcp::resolver resolver(io_service);
         // numeric_service flag is required to send data if the Linux machine has no internet connection (in this case the loopback device is the only network device with an address).
         // https://stackoverflow.com/questions/5971242/how-does-boost-asios-hostname-resolution-work-on-linux-is-it-possible-to-use-n
         // https://www.boost.org/doc/libs/1_65_0/doc/html/boost_asio/reference/ip__basic_resolver_query.html
-        tcp::resolver::query query(tcp::v4(), hostname.c_str(), port.c_str(), boost::asio::ip::resolver_query_base::numeric_service);
-        tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-        tcp::resolver::iterator end;
 
-        socket_ = new tcp::socket(io_service);
+        boost::asio::ip::tcp::resolver::query query(
+                boost::asio::ip::tcp::v4(),
+                hostname.c_str(),
+                port.c_str(),
+                boost::asio::ip::resolver_query_base::numeric_service);
+
+        boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+        boost::asio::ip::tcp::resolver::iterator end;
+
+        socket_ = new boost::asio::ip::tcp::socket(io_service);
         if (!socket_) {
             throw GadgetronClientException("Unable to create socket.");
         }
@@ -1557,7 +1562,7 @@ protected:
     }
 
     boost::asio::io_service io_service;
-    tcp::socket* socket_;
+    boost::asio::ip::tcp::socket* socket_;
     std::thread reader_thread_;
     maptype readers_;
     unsigned int timeout_ms_;
@@ -1581,7 +1586,7 @@ public:
 
   }
 
-  virtual void read(tcp::socket* stream)
+  virtual void read(boost::asio::ip::tcp::socket* stream)
   {
     size_t recv_count = 0;
 
