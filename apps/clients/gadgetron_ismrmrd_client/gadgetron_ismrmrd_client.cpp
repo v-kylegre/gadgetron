@@ -36,6 +36,7 @@
 
 #include "NHLBICompression.h"
 #include "GadgetronTimer.h"
+#include "GadgetronClientMessageReader.h"
 
 #if defined GADGETRON_COMPRESSION_ZFP
 #include <zfp.h>
@@ -261,18 +262,6 @@ public:
 
 protected:
     std::string msg_;
-};
-
-class GadgetronClientMessageReader
-{
-public:
-    virtual ~GadgetronClientMessageReader() {}
-
-    /**
-    Function must be implemented to read a specific message.
-    */
-    virtual void read(boost::asio::ip::tcp::socket* s) = 0;
-
 };
 
 class GadgetronClientResponseReader : public GadgetronClientMessageReader
