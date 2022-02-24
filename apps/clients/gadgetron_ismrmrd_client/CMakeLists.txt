@@ -9,8 +9,10 @@ if (ZFP_FOUND)
    include_directories(${ZFP_INCLUDE_DIR})
 endif()
 
+file(GLOB gadgetron_ismrmrd_client_srcs *.cpp *.h)
 
-add_executable(gadgetron_ismrmrd_client gadgetron_ismrmrd_client.cpp)
+add_executable(gadgetron_ismrmrd_client ${gadgetron_ismrmrd_client_srcs})
+
 include_directories(${HDF5_INCLUDE_DIRS})
 target_link_libraries(gadgetron_ismrmrd_client ISMRMRD::ISMRMRD Boost::program_options gadgetron_mricore )
 
