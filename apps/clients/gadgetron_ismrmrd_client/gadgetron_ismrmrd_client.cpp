@@ -37,6 +37,7 @@
 #include "NHLBICompression.h"
 #include "GadgetronTimer.h"
 #include "GadgetronClientResponseReader.h"
+#include "GadgetronClientException.h"
 
 #if defined GADGETRON_COMPRESSION_ZFP
 #include <zfp.h>
@@ -243,26 +244,6 @@ struct GadgetMessageScript
     uint32_t script_length;
 };
 
-class GadgetronClientException : public std::exception
-{
-
-public:
-    GadgetronClientException(std::string msg)
-        : msg_(msg)
-    {
-
-    }
-
-    virtual ~GadgetronClientException() throw() {}
-
-    virtual const char* what() const throw()
-    {
-        return msg_.c_str();
-    }
-
-protected:
-    std::string msg_;
-};
 
 class GadgetronClientTextReader : public GadgetronClientMessageReader
 {
