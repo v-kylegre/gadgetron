@@ -36,7 +36,7 @@
 
 #include "NHLBICompression.h"
 #include "GadgetronTimer.h"
-#include "GadgetronClientMessageReader.h"
+#include "GadgetronClientResponseReader.h"
 
 #if defined GADGETRON_COMPRESSION_ZFP
 #include <zfp.h>
@@ -262,24 +262,6 @@ public:
 
 protected:
     std::string msg_;
-};
-
-class GadgetronClientResponseReader : public GadgetronClientMessageReader
-{
-    void read(boost::asio::ip::tcp::socket *stream) override {
-
-        uint64_t correlation_id = 0;
-        uint64_t response_length = 0;
-
-        boost::asio::read(*stream, boost::asio::buffer(&correlation_id, sizeof(correlation_id)));
-        boost::asio::read(*stream, boost::asio::buffer(&response_length, sizeof(response_length)));
-
-        std::vector<char> response(response_length + 1,0);
-
-        boost::asio::read(*stream, boost::asio::buffer(response.data(),response_length));
-
-        std::cout << response.data() << std::endl;
-    }
 };
 
 class GadgetronClientTextReader : public GadgetronClientMessageReader
