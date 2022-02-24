@@ -1,8 +1,8 @@
 /*****************************************
-*  Standalone ISMRMRD Gadgetron Client  
+*  Standalone ISMRMRD Gadgetron Client
 *
 * Author: Michael S. Hansen
-* 
+*
 * Dependencies: ISMRMRD and Boost
 *
 *****************************************/
@@ -11,9 +11,9 @@
 // -Blobs (for DICOM image support)
 //  - First implementation is in, but testing needed
 // -NIFTI and Analyze output
-// -Check on potential threading problem with asio socket 
+// -Check on potential threading problem with asio socket
 //    - having and reading and writing thread is supposedly not safe, but seems to work here
-// -Static linking for standalone executable. 
+// -Static linking for standalone executable.
 
 #include <boost/program_options.hpp>
 #include <boost/asio.hpp>
@@ -176,7 +176,7 @@ size_t compress_zfp_precision(float* in, size_t samples, size_t coils, unsigned 
       stream_close(stream);
       throw std::runtime_error("Compression failed");
   }
-  
+
   zfp_field_free(field);
   zfp_stream_close(zfp);
   stream_close(stream);
@@ -296,27 +296,27 @@ class GadgetronClientResponseReader : public GadgetronClientMessageReader
 
 class GadgetronClientTextReader : public GadgetronClientMessageReader
 {
-  
+
 public:
   GadgetronClientTextReader()
   {
-    
+
   }
 
   virtual ~GadgetronClientTextReader()
   {
-    
+
   }
 
   virtual void read(tcp::socket* stream)
   {
     size_t recv_count = 0;
-    
+
     typedef unsigned long long size_t_type;
     uint32_t len(0);
     boost::asio::read(*stream, boost::asio::buffer(&len, sizeof(uint32_t)));
 
-    
+
     char* buf = NULL;
     try {
       buf = new char[len+1];
@@ -325,38 +325,38 @@ public:
       std::cerr << "TextReader, failed to allocate buffer" << std::endl;
       throw;
     }
-       
+
     if (boost::asio::read(*stream, boost::asio::buffer(buf, len)) != len)
     {
       delete [] buf;
-      throw GadgetronClientException("Incorrect number of bytes read for dependency query");  
+      throw GadgetronClientException("Incorrect number of bytes read for dependency query");
     }
 
     std::string s(buf);
     std::cout << s;
     delete[] buf;
-  }  
+  }
 };
 
 
 class GadgetronClientDependencyQueryReader : public GadgetronClientMessageReader
 {
-  
+
 public:
   GadgetronClientDependencyQueryReader(std::string filename) : number_of_calls_(0) , filename_(filename)
   {
-    
+
   }
 
   virtual ~GadgetronClientDependencyQueryReader()
   {
-    
+
   }
 
   virtual void read(tcp::socket* stream)
   {
     size_t recv_count = 0;
-    
+
     typedef unsigned long long size_t_type;
     size_t_type len(0);
     boost::asio::read(*stream, boost::asio::buffer(&len, sizeof(size_t_type)));
@@ -370,14 +370,14 @@ public:
       std::cerr << "DependencyQueryReader, failed to allocate buffer" << std::endl;
       throw;
     }
-    
-    
+
+
     if (boost::asio::read(*stream, boost::asio::buffer(buf, len)) != len)
     {
       delete [] buf;
-      throw GadgetronClientException("Incorrect number of bytes read for dependency query");  
+      throw GadgetronClientException("Incorrect number of bytes read for dependency query");
     }
-    
+
     std::ofstream outfile;
     outfile.open (filename_.c_str(), std::ios::out|std::ios::binary);
 
@@ -387,12 +387,12 @@ public:
       number_of_calls_++;
     } else {
       delete[] buf;
-      throw GadgetronClientException("Unable to write dependency query to file");  
+      throw GadgetronClientException("Unable to write dependency query to file");
     }
-    
+
     delete[] buf;
   }
-  
+
   protected:
     size_t number_of_calls_;
     std::string filename_;
@@ -411,9 +411,9 @@ public:
     }
 
     ~GadgetronClientImageMessageReader() {
-    } 
+    }
 
-    template <typename T> 
+    template <typename T>
     void read_data_attrib(tcp::socket* stream, const ISMRMRD::ImageHeader& h, ISMRMRD::Image<T>& im)
     {
         im.setHead(h);
@@ -456,7 +456,7 @@ public:
         }
     }
 
-    virtual void read(tcp::socket* stream) 
+    virtual void read(tcp::socket* stream)
     {
         //Read the image headerfrom the socket
         ISMRMRD::ImageHeader h;
@@ -838,7 +838,7 @@ public:
     }
 
     ~GadgetronClientAnalyzeImageMessageReader() {
-    } 
+    }
 
     template <typename T>
     void read_data_attrib(tcp::socket* stream, const ISMRMRD::ImageHeader& h, ISMRMRD::Image<T>& im)
@@ -929,7 +929,7 @@ public:
         outfileData.close();
     }
 
-    virtual void read(tcp::socket* stream) 
+    virtual void read(tcp::socket* stream)
     {
         //Read the image headerfrom the socket
         ISMRMRD::ImageHeader h;
@@ -990,7 +990,7 @@ protected:
 
 #define MAX_BLOBS_LOG_10    6
 
-class GadgetronClientBlobMessageReader 
+class GadgetronClientBlobMessageReader
     : public GadgetronClientMessageReader
 {
 
@@ -1006,7 +1006,7 @@ public:
 
     virtual ~GadgetronClientBlobMessageReader() {}
 
-    virtual void read(tcp::socket* socket) 
+    virtual void read(tcp::socket* socket)
     {
 
         // MUST READ 32-bits
@@ -1087,7 +1087,7 @@ class GadgetronClientConnector
 {
 
 public:
-    GadgetronClientConnector() 
+    GadgetronClientConnector()
         : socket_(0)
         , timeout_ms_(10000)
         , uncompressed_bytes_sent_(0)
@@ -1097,7 +1097,7 @@ public:
 
     }
 
-    virtual ~GadgetronClientConnector() 
+    virtual ~GadgetronClientConnector()
     {
         if (socket_) {
             socket_->close();
@@ -1122,7 +1122,7 @@ public:
             return header_bytes_sent_ + compressed_bytes_sent_;
         }
     }
-    
+
     void set_timeout(unsigned int t)
     {
         timeout_ms_ = t;
@@ -1175,7 +1175,7 @@ public:
 
         std::condition_variable cv;
         std::mutex cv_m;
-        
+
         boost::system::error_code error = boost::asio::error::host_not_found;
         std::thread t([&](){
                 //TODO:
@@ -1202,12 +1202,12 @@ public:
         reader_thread_ = std::thread([&](){this->read_task();});
     }
 
-    void send_gadgetron_close() { 
+    void send_gadgetron_close() {
         if (!socket_) {
             throw GadgetronClientException("Invalid socket.");
         }
         GadgetMessageIdentifier id;
-        id.id = GADGET_MESSAGE_CLOSE;    
+        id.id = GADGET_MESSAGE_CLOSE;
         header_bytes_sent_ += boost::asio::write(*socket_, boost::asio::buffer(&id, sizeof(GadgetMessageIdentifier)));
     }
 
@@ -1279,7 +1279,7 @@ public:
         header_bytes_sent_ += boost::asio::write(*socket_, boost::asio::buffer(xml_string.c_str(), conf.script_length));
     }
 
-    void send_ismrmrd_acquisition(ISMRMRD::Acquisition& acq) 
+    void send_ismrmrd_acquisition(ISMRMRD::Acquisition& acq)
     {
         if (!socket_) {
             throw GadgetronClientException("Invalid socket.");
@@ -1305,7 +1305,7 @@ public:
     }
 
 
-    void send_ismrmrd_compressed_acquisition_precision(ISMRMRD::Acquisition& acq, unsigned int compression_precision) 
+    void send_ismrmrd_compressed_acquisition_precision(ISMRMRD::Acquisition& acq, unsigned int compression_precision)
     {
         if (!socket_) {
             throw GadgetronClientException("Invalid socket.");
@@ -1334,19 +1334,19 @@ public:
             std::unique_ptr<CompressedFloatBuffer> comp_buffer(CompressedFloatBuffer::createCompressedBuffer());
             comp_buffer->compress(input_data, -1.0, compression_precision);
             std::vector<uint8_t> serialized_buffer = comp_buffer->serialize();
- 
+
             compressed_bytes_sent_ += serialized_buffer.size();
             uncompressed_bytes_sent_ += data_elements*2*sizeof(float);
-                            
+
             uint32_t bs = (uint32_t)serialized_buffer.size();
             boost::asio::write(*socket_, boost::asio::buffer(&bs, sizeof(uint32_t)));
             boost::asio::write(*socket_, boost::asio::buffer(&serialized_buffer[0], serialized_buffer.size()));
         }
-        
+
     }
 
 
-    void send_ismrmrd_compressed_acquisition_tolerance(ISMRMRD::Acquisition& acq, float compression_tolerance, NoiseStatistics& stat) 
+    void send_ismrmrd_compressed_acquisition_tolerance(ISMRMRD::Acquisition& acq, float compression_tolerance, NoiseStatistics& stat)
     {
         if (!socket_) {
             throw GadgetronClientException("Invalid socket.");
@@ -1391,7 +1391,7 @@ public:
         }
     }
 
-    void send_ismrmrd_zfp_compressed_acquisition_precision(ISMRMRD::Acquisition& acq, unsigned int compression_precision) 
+    void send_ismrmrd_zfp_compressed_acquisition_precision(ISMRMRD::Acquisition& acq, unsigned int compression_precision)
     {
 
 #if defined GADGETRON_COMPRESSION_ZFP
@@ -1430,7 +1430,7 @@ public:
                 uncompressed_bytes_sent_ += data_elements*2*sizeof(float);
                 float compression_ratio = (1.0*data_elements*2*sizeof(float))/(float)compressed_size;
                 //std::cout << "Compression ratio: " << compression_ratio << std::endl;
-                
+
             } catch (...) {
                 delete [] comp_buffer;
                 std::cout << "Compression failure caught" << std::endl;
@@ -1451,7 +1451,7 @@ public:
 #endif //GADGETRON_COMPRESSION_ZFP
     }
 
-    void send_ismrmrd_zfp_compressed_acquisition_tolerance(ISMRMRD::Acquisition& acq, float compression_tolerance, NoiseStatistics& stat) 
+    void send_ismrmrd_zfp_compressed_acquisition_tolerance(ISMRMRD::Acquisition& acq, float compression_tolerance, NoiseStatistics& stat)
     {
 #if defined GADGETRON_COMPRESSION_ZFP
         if (!socket_) {
@@ -1494,7 +1494,7 @@ public:
                 uncompressed_bytes_sent_ += data_elements*2*sizeof(float);
                 float compression_ratio = (1.0*data_elements*2*sizeof(float))/(float)compressed_size;
                 //std::cout << "Compression ratio: " << compression_ratio << std::endl;
-                
+
             } catch (...) {
                 delete [] comp_buffer;
                 std::cout << "Compression failure caught" << std::endl;
@@ -1569,22 +1569,22 @@ protected:
 
 class GadgetronClientQueryToStringReader : public GadgetronClientMessageReader
 {
-  
+
 public:
   GadgetronClientQueryToStringReader(std::string& result) : result_(result)
   {
-    
+
   }
 
   virtual ~GadgetronClientQueryToStringReader()
   {
-    
+
   }
 
   virtual void read(tcp::socket* stream)
   {
     size_t recv_count = 0;
-    
+
     typedef unsigned long long size_t_type;
     size_t_type len(0);
     boost::asio::read(*stream, boost::asio::buffer(&len, sizeof(size_t_type)));
@@ -1595,9 +1595,9 @@ public:
       throw GadgetronClientException("Incorrect number of bytes read for dependency query");
     }
     result_ = std::string(temp.data(),len);
-    
+
   }
-  
+
   protected:
     std::string& result_;
 };
@@ -1611,9 +1611,9 @@ NoiseStatistics get_noise_statistics(std::string dependency_name, std::string ho
     NoiseStatistics stat;
 
     con.register_reader(GADGET_MESSAGE_DEPENDENCY_QUERY, std::make_shared<GadgetronClientQueryToStringReader>(result));
-    
+
     std::string xml_config;
-    
+
     xml_config += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     xml_config += "      <gadgetronStreamConfiguration xsi:schemaLocation=\"http://gadgetron.sf.net/gadgetron gadgetron.xsd\"\n";
     xml_config += "        xmlns=\"http://gadgetron.sf.net/gadgetron\"\n";
@@ -1664,7 +1664,7 @@ NoiseStatistics get_noise_statistics(std::string dependency_name, std::string ho
     return stat;
 }
 
-void send_ismrmrd_acq(GadgetronClientConnector& con, ISMRMRD::Acquisition& acq_tmp, 
+void send_ismrmrd_acq(GadgetronClientConnector& con, ISMRMRD::Acquisition& acq_tmp,
     unsigned int compression_precision, bool use_zfp_compression, float compression_tolerance, NoiseStatistics& noise_stats)
 {
     try
@@ -1732,7 +1732,7 @@ int main(int argc, char **argv)
         ("filename,f", po::value<std::string>(&in_filename), "Input file")
         ("outfile,o", po::value<std::string>(&out_filename)->default_value("out.h5"), "Output file")
         ("in-group,g", po::value<std::string>(&hdf5_in_group)->default_value("/dataset"), "Input data group")
-        ("out-group,G", po::value<std::string>(&hdf5_out_group)->default_value(get_date_time_string()), "Output group name")  
+        ("out-group,G", po::value<std::string>(&hdf5_out_group)->default_value(get_date_time_string()), "Output group name")
         ("config,c", po::value<std::string>(&config_file)->default_value("default.xml"), "Configuration file (remote)")
         ("config-local,C", po::value<std::string>(&config_file_local), "Configuration file (local)")
         ("loops,l", po::value<unsigned int>(&loops)->default_value(1), "Loops")
@@ -1832,7 +1832,7 @@ int main(int argc, char **argv)
                 }
             }
         }
-        
+
         if (!noise_id.empty()) {
             std::cout << "Querying the Gadgetron instance for the dependent measurement: " << noise_id << std::endl;
             noise_stats = get_noise_statistics(std::string("GadgetronNoiseCovarianceMatrix_") + noise_id, host_name, port, timeout_ms);
@@ -1842,7 +1842,7 @@ int main(int argc, char **argv)
                     std::cout << "  !!!!!! COMPRESSION TOLERANCE LEVEL SPECIFIED, BUT IT IS NOT POSSIBLE TO DETERMINE SIGMA. ASSIMUMING SIGMA == 1 !!!!!!" << std::endl;
                 }
             } else {
-                std::cout << "Noise level: Min sigma = " << noise_stats.sigma_min << ", Mean sigma = " << noise_stats.sigma_mean << ", Max sigma = " << noise_stats.sigma_max << std::endl; 
+                std::cout << "Noise level: Min sigma = " << noise_stats.sigma_min << ", Mean sigma = " << noise_stats.sigma_mean << ", Max sigma = " << noise_stats.sigma_max << std::endl;
             }
         }
     }
@@ -1931,8 +1931,8 @@ int main(int argc, char **argv)
 
                         if (verbose)
                         {
-                            std::cout << "--> Send out ismrmrd waveform : " << j << " - " << wav_tmp.head.scan_counter 
-                                << " - " << wav_tmp.head.time_stamp 
+                            std::cout << "--> Send out ismrmrd waveform : " << j << " - " << wav_tmp.head.scan_counter
+                                << " - " << wav_tmp.head.time_stamp
                                 << " - " << wav_tmp.head.channels
                                 << " - " << wav_tmp.head.number_of_samples
                                 << " - " << wav_tmp.head.waveform_id
