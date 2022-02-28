@@ -43,6 +43,7 @@
 #include "GadgetronClientImageMessageReader.h"
 #include "GadgetronClientBlobMessageReader.h"
 #include "GadgetronClientAnalyzeImageMessageReader.h"
+#include "GadgetronClientQueryToStringReader.h"
 #include "GadgetronMessageDefs.h"
 
 #if defined GADGETRON_COMPRESSION_ZFP
@@ -691,43 +692,6 @@ protected:
     double uncompressed_bytes_sent_;
     double compressed_bytes_sent_;
 };
-
-
-class GadgetronClientQueryToStringReader : public GadgetronClientMessageReader
-{
-
-public:
-  GadgetronClientQueryToStringReader(std::string& result) : result_(result)
-  {
-
-  }
-
-  virtual ~GadgetronClientQueryToStringReader()
-  {
-
-  }
-
-  virtual void read(boost::asio::ip::tcp::socket* stream)
-  {
-    size_t recv_count = 0;
-
-    typedef unsigned long long size_t_type;
-    size_t_type len(0);
-    boost::asio::read(*stream, boost::asio::buffer(&len, sizeof(size_t_type)));
-
-    std::vector<char> temp(len,0);
-    if (boost::asio::read(*stream, boost::asio::buffer(temp.data(), len)) != len)
-    {
-      throw GadgetronClientException("Incorrect number of bytes read for dependency query");
-    }
-    result_ = std::string(temp.data(),len);
-
-  }
-
-  protected:
-    std::string& result_;
-};
-
 
 NoiseStatistics get_noise_statistics(std::string dependency_name, std::string host_name, std::string port, unsigned int timeout_ms)
 {
