@@ -1,19 +1,8 @@
-/*****************************************
-*  Standalone ISMRMRD Gadgetron Client  
-*
-* Author: Michael S. Hansen
-* 
-* Dependencies: ISMRMRD and Boost
-*
-*****************************************/
+#include "client_readers.h"
+#include "message_defs.h"
+#include "gadgetron_client_exception.h"
 
-//TODO:
-// -Blobs (for DICOM image support)
-//  - First implementation is in, but testing needed
-// -NIFTI and Analyze output
-// -Check on potential threading problem with asio socket 
-//    - having and reading and writing thread is supposedly not safe, but seems to work here
-// -Static linking for standalone executable. 
+#include <iostream>
 
 #include <boost/program_options.hpp>
 #include <boost/asio.hpp>
@@ -24,21 +13,8 @@
 #include <ismrmrd/xml.h>
 #include <ismrmrd/waveform.h>
 
-#include <streambuf>
-#include <time.h>
-#include <iomanip>
-#include <iostream>
-#include <exception>
-#include <map>
-#include <thread>
-#include <chrono>
-#include <condition_variable>
-
 #include "NHLBICompression.h"
 #include "GadgetronTimer.h"
-#include "message_defs.h"
-#include "client_readers.h"
-#include "gadgetron_client_exception.h"
 
 #if defined GADGETRON_COMPRESSION_ZFP
 #include <zfp.h>

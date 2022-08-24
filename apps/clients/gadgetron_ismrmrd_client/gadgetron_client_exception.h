@@ -1,5 +1,7 @@
 #pragma once 
+
 #include <exception> 
+#include <string>
 
 
 class GadgetronClientException : public std::exception
